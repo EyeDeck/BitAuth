@@ -1,9 +1,10 @@
-Authentication and whitelisting solution for Bitlegend. Built from the ground up for Minecraft/Bukkit 1.2.x (with planned updates as long as Bitlegend hosts a server). We needed a simple, easy to manage solution for authentication due to the pirate-friendly nature of our server. After having no luck with popular authentication plugins (the update cycles at the time were ridiculously long - as you would expect from significantly more complex plugins) I decided to write one for us. I wanted to create an easy to use and lightweight authentication plugin for Minecraft/Bukkit and that's exactly what I've done.
+Authentication and whitelisting solution for Bitlegend. Built from the ground up for Minecraft/Bukkit 1.2.x (with planned updates as long as Bitlegend hosts a server). We needed a simple, easy to manage solution for authentication due to the pirate-friendly nature of our server. After having no luck with popular authentication plugins (the update cycles at the time were ridiculously long - as you would expect from significantly more complex plugins) I decided to write one for us. I wanted to create an easy to use and lightweight authentication plugin for Minecraft/Bukkit and that's exactly what I have done.
 
 - dechiridas
 
 Make sure to check the plugin.yml file for permission nodes and commands!
 
 Supported database types: MySQL
+Dependencies: none
 
-* Updated for Craftbukkit 1.3.1-R1.0 (build #2317)
+* Updated for Craftbukkit 1.4.5-R0.5 (build #2483)
