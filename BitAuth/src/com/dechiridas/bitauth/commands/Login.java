@@ -22,8 +22,19 @@ public class Login implements CommandExecutor {
 			Player player = (Player)sender;
 
 			if (split.length == 1 || split.length == 2) {
-				plugin.database.tryLoginManual(player, split);
-				r = true;
+				if (plugin.database.tryLoginManual(player, split)) {
+					/* TODO: inventory hiding thing
+					 * Here lies some really hackish experimental code that only slightly worked
+					 * I'll get around to making it work when I do
+					Inventory playerInventory = player.getInventory();
+					ItemStack[] contents = BAPlayer.inventories.get(player);
+					BAPlayer.inventories.remove(player);
+					playerInventory.setContents(contents);
+					player.sendMessage("Inventory restored");
+					*/
+					
+					r = true;
+				}
 			}
 
 		} else {

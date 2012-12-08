@@ -1,6 +1,10 @@
 package com.dechiridas.bitauth.player;
 
+// import java.util.HashMap;
+// import java.util.Map;
+
 import org.bukkit.entity.Player;
+// import org.bukkit.inventory.ItemStack;
 
 import com.dechiridas.bitauth.BitAuth;
 
@@ -10,6 +14,7 @@ public class BAPlayer {
 	private BAState state;
 	private TimeoutTimer tt;
 	private int timeout;
+	// public static Map<Player, ItemStack[]> inventories = new HashMap<Player, ItemStack[]>();
 	
 	public BAPlayer(BitAuth instance, Player player) {
 		this.plugin = instance;

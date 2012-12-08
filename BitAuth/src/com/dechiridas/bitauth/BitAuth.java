@@ -17,6 +17,7 @@ import com.dechiridas.bitauth.util.*;
 
 public class BitAuth extends JavaPlugin {
 	// public objects
+	public ConnectionManager connectionmanager = null;
 	public Log log = null;
 	public FileConfiguration config = null;
 	public PlayerManager pman = null;
@@ -36,6 +37,8 @@ public class BitAuth extends JavaPlugin {
 			if (b.getState() != BAState.LOGGEDIN)
 				b.getPlayer().kickPlayer("Force disconnect by server.");
 		}
+		
+		connectionmanager.closeConnection();
 	}
 	
 	@Override
@@ -51,9 +54,13 @@ public class BitAuth extends JavaPlugin {
 		this.getConfig().options().copyDefaults(true);
 		this.saveConfig();
 		
+		if (connectionmanager == null) connectionmanager = new ConnectionManager(this);
 		if (log == null) log = new Log(this);
 		if (pman == null) pman = new PlayerManager(this);
 		if (database == null) database = new Database(this);
+		
+		// Open a new connection to the database
+		connectionmanager.openConnection();
 		
 		// Check databases, generate if not found
 		// will give errors if config isn't set up properly

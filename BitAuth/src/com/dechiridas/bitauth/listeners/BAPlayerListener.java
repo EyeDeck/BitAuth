@@ -3,10 +3,10 @@ package com.dechiridas.bitauth.listeners;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.*;
 import org.bukkit.event.player.PlayerLoginEvent.Result;
-
 import com.dechiridas.bitauth.BitAuth;
 import com.dechiridas.bitauth.player.BAPlayer;
 import com.dechiridas.bitauth.player.BAState;
@@ -58,7 +58,7 @@ public class BAPlayerListener implements Listener {
 			}
 			
 			// Exits the loop if it takes more than 2 seconds.
-			if (System.nanoTime() >= timeout + 2000000000) {
+			if (System.nanoTime() >= timeout + 2000000000L) {
 				player.kickPlayer("Something went wrong with authentication. Please relog.");
 				plugin.log.println(ChatColor.stripColor(player.getDisplayName()) + " was kicked because BitAuth fucked up.");
 				break;
@@ -70,11 +70,17 @@ public class BAPlayerListener implements Listener {
 		boolean pwreset = false;
 
 		plugin.database.offsetPlayerIPHistory(player);
-		
+
 		if (state == BAState.LOGGEDIN) {
 			player.sendMessage(ChatColor.GREEN + 
 					"Welcome back, " + event.getPlayer().getName());
 		} else if (state == BAState.LOGGEDOUT) {
+			/* Inventory playerInventory = player.getInventory();
+			ItemStack[] contents = playerInventory.getContents();
+			BAPlayer.inventories.put(player, contents);
+			playerInventory.clear();
+			player.sendMessage("Inventory cleared"); */
+			
 			player.sendMessage(new String[] { 
 					ChatColor.GREEN + "Please log in by typing:",
 					ChatColor.GREEN + "/login <password>"
@@ -115,8 +121,18 @@ public class BAPlayerListener implements Listener {
 	@EventHandler
 	public void onPlayerQuit(PlayerQuitEvent event) {
 		Player player = event.getPlayer();
-		BAPlayer ba = null;
-		ba = plugin.pman.getBAPlayerByName(player.getName());
+		BAPlayer ba = plugin.pman.getBAPlayerByName(player.getName());
+		/* This doesn't work, I just wanted to see what happened
+		
+		BAState state = ba.getState();
+		
+		if (state == BAState.UNREGISTERED || state == BAState.LOGGEDOUT) {
+			OfflinePlayer offlinePlayer = Bukkit.getServer().getOfflinePlayer(player.getName());
+			PlayerInventory playerInventory = offlinePlayer.getInventory();
+			ItemStack[] contents = BAPlayer.inventories.get(player);
+			playerInventory.setContents(contents);
+			// player.sendMessage("Inventory restored");
+		} */
 
 		plugin.pman.removePlayer(ba);
 	}
@@ -161,8 +177,20 @@ public class BAPlayerListener implements Listener {
 			event.setCancelled(true);
 	}
 	
+	@EventHandler (priority = EventPriority.LOWEST)
+	public void onPlayerInteract(PlayerInteractEvent event) {
+		Player player = event.getPlayer();
+		BAPlayer ba = plugin.pman.getBAPlayerByName(player.getName());
+		BAState state = ba.getState();
+
+		if (state == BAState.UNREGISTERED || state == BAState.LOGGEDOUT) {
+			event.setCancelled(true);
+			player.sendMessage("PlayerInteractEvent cancelled - did Essentials be a dick?");
+		}
+	}
+	
 	@EventHandler
-	public void onPlayerInteractEvent(PlayerInteractEvent event) {
+	public void onPlayerInteractEntity(PlayerInteractEntityEvent event) {
 		Player player = event.getPlayer();
 		BAPlayer ba = plugin.pman.getBAPlayerByName(player.getName());
 		BAState state = ba.getState();
@@ -172,17 +200,7 @@ public class BAPlayerListener implements Listener {
 	}
 	
 	@EventHandler
-	public void onPlayerInteractEntityEvent(PlayerInteractEntityEvent event) {
-		Player player = event.getPlayer();
-		BAPlayer ba = plugin.pman.getBAPlayerByName(player.getName());
-		BAState state = ba.getState();
-
-		if (state == BAState.UNREGISTERED || state == BAState.LOGGEDOUT)
-			event.setCancelled(true);
-	}
-	
-	@EventHandler
-	public void onPlayerExpChangeEvent(PlayerExpChangeEvent event) {
+	public void onPlayerExpChange(PlayerExpChangeEvent event) {
 		Player player = event.getPlayer();
 		BAPlayer ba = plugin.pman.getBAPlayerByName(player.getName());
 		BAState state = ba.getState();
@@ -192,34 +210,31 @@ public class BAPlayerListener implements Listener {
 	}
 	
 	@EventHandler
-	public void onPlayerToggleSneakEvent(PlayerToggleSneakEvent event) {
+	public void onPlayerToggleSneak(PlayerToggleSneakEvent event) {
 		Player player = event.getPlayer();
 		BAPlayer ba = plugin.pman.getBAPlayerByName(player.getName());
 		BAState state = ba.getState();
 		
-
 		if (state == BAState.UNREGISTERED || state == BAState.LOGGEDOUT)
 			event.setCancelled(true);
 	}
 	
 	@EventHandler
-	public void onPlayerToggleSprintEvent(PlayerToggleSprintEvent event) {
+	public void onPlayerToggleSprint(PlayerToggleSprintEvent event) {
 		Player player = event.getPlayer();
 		BAPlayer ba = plugin.pman.getBAPlayerByName(player.getName());
 		BAState state = ba.getState();
 		
-
 		if (state == BAState.UNREGISTERED || state == BAState.LOGGEDOUT)
 			event.setCancelled(true);
 	}
 	
 	@EventHandler
-	public void onPlayerDropItemEvent(PlayerDropItemEvent event) {
+	public void onPlayerDropItem(PlayerDropItemEvent event) {
 		Player player = event.getPlayer();
 		BAPlayer ba = plugin.pman.getBAPlayerByName(player.getName());
 		BAState state = ba.getState();
 		
-
 		if (state == BAState.UNREGISTERED || state == BAState.LOGGEDOUT)
 			event.setCancelled(true);
 	}

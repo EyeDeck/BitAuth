@@ -39,12 +39,15 @@ public class Unregister implements CommandExecutor {
 				Player player = (Player)sender;
 				
 				 // Give unregister a 1-minute timeout
-				if (confirmUnregister.get(player) + 60000000 <= System.nanoTime()) {
+				if (System.nanoTime() >= confirmUnregister.get(player) + 60000000000L) {
 					if (plugin.database.tryVerifyPassword(player, split[0]))
 						plugin.database.tryUnregister(player);
 					else
 						player.sendMessage(ChatColor.YELLOW
 								+ "Password incorrect, type /unregister to try again.");
+				} else {
+					player.sendMessage(ChatColor.YELLOW
+							+ "Unregister has timed out! Type /unregister to try again.");
 				}
 				
 				confirmUnregister.remove(player);

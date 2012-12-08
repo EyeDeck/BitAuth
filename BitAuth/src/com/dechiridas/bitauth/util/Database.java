@@ -4,7 +4,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -26,27 +25,20 @@ public class Database {
 	private BitAuth plugin;
 	
 	// Database info
-	private String user = ""; // db username
-	private String pass = ""; // db password
-	private String url = ""; // db url
 	private String login = ""; // db login table
 	private String iptable = ""; // db ip table
 	private String wlist = ""; // db whitelist table
 	
 	// Whitelist info
 	private int bypass = 0;
-	
+		
 	public Database(BitAuth instance) {
 		this.plugin = instance;
 		
 		// Database configuration
-		user = plugin.config.getString("settings.database.username");
-		pass = plugin.config.getString("settings.database.password");
 		login = plugin.config.getString("settings.database.tables.login");
 		wlist = plugin.config.getString("settings.database.tables.whitelist");
 		iptable = plugin.config.getString("settings.database.tables.iphistory");
-		url = "jdbc:mysql://" + plugin.config.getString("settings.database.host") +
-			"/" + plugin.config.getString("settings.database.database");
 		
 		// Whitelist configuration
 		bypass = plugin.config.getInt("settings.whitelist.bypass");
@@ -64,7 +56,7 @@ public class Database {
 		boolean r = false;
 		
 		try {
-			Connection conn = DriverManager.getConnection(url, user, pass);
+			Connection conn = plugin.connectionmanager.getConnection();
 			Statement select = conn.createStatement();
 			ResultSet result = select.executeQuery(
 					"SELECT * FROM `" + wlist + "`");
@@ -77,7 +69,6 @@ public class Database {
 			}
 			result.close();
 			select.close();
-			conn.close();
 		} catch (SQLException sq) {
 			sq.printStackTrace();
 		}
@@ -87,7 +78,7 @@ public class Database {
 	
 	public void tryLogin(Player player, PlayerLoginEvent event) {
 		try {
-			Connection conn = DriverManager.getConnection(url, user, pass);
+			Connection conn = plugin.connectionmanager.getConnection();
 			Statement select = conn.createStatement();
 			ResultSet result = select.executeQuery(
 					"SELECT * FROM `" + login + "`");
@@ -146,7 +137,6 @@ public class Database {
 			
 			result.close();
 			select.close();
-			conn.close();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -156,7 +146,7 @@ public class Database {
 		boolean r = false, blogin = false, bwhitelist = false, bip = false;
 		
 		try {
-			Connection conn = DriverManager.getConnection(url, user, pass);
+			Connection conn = plugin.connectionmanager.getConnection();
 			Statement select = conn.createStatement();
 			ResultSet result = select.executeQuery("SHOW TABLES");
 			
@@ -199,7 +189,7 @@ public class Database {
 			String[] newcolumns = { "dateregistered" };
 			boolean[] found = new boolean[newcolumns.length];
 			
-			Connection conn = DriverManager.getConnection(url, user, pass);
+			Connection conn = plugin.connectionmanager.getConnection();
 			Statement select = conn.createStatement();
 			ResultSet result = select.executeQuery("SELECT * FROM `" + login + "`");
 			ResultSetMetaData rsmd = result.getMetaData();
@@ -233,7 +223,6 @@ public class Database {
 			// clean up
 			result.close();
 			select.close();
-			conn.close();
 		} catch (SQLException se) {
 			se.printStackTrace();
 		}
@@ -256,14 +245,13 @@ public class Database {
 				") ENGINE=InnoDB DEFAULT CHARSET=utf8";
 		
 		try {
-			Connection conn = DriverManager.getConnection(url, user, pass);
+			Connection conn = plugin.connectionmanager.getConnection();
 			Statement query = conn.createStatement();
 			
 			query.executeUpdate(queryDropLogin);
 			query.executeUpdate(queryCreateLogin);
 			
 			query.close();
-			conn.close();
 		} catch (SQLException se) {
 			se.printStackTrace();
 		}
@@ -277,14 +265,13 @@ public class Database {
 				") ENGINE=InnoDB DEFAULT CHARSET=utf8";
 		
 		try {
-			Connection conn = DriverManager.getConnection(url, user, pass);
+			Connection conn = plugin.connectionmanager.getConnection();
 			Statement query = conn.createStatement();
 			
 			query.executeUpdate(queryDropWhitelist);
 			query.executeUpdate(queryCreateWhitelist);
 			
 			query.close();
-			conn.close();
 		} catch (SQLException se) {
 			se.printStackTrace();
 		}
@@ -302,14 +289,13 @@ public class Database {
 				") ENGINE=InnoDB DEFAULT CHARSET=utf8";
 		
 		try {
-			Connection conn = DriverManager.getConnection(url, user, pass);
+			Connection conn = plugin.connectionmanager.getConnection();
 			Statement query = conn.createStatement();
 			
 			query.executeUpdate(queryDropIp);
 			query.executeUpdate(queryCreateIp);
 			
 			query.close();
-			conn.close();
 		} catch (SQLException se) {
 			se.printStackTrace();
 		}
@@ -320,7 +306,7 @@ public class Database {
 		index = (index > 5 ? 5 : index) < 0 ? 0 : index;
 		
 		try {
-			Connection conn = DriverManager.getConnection(url, user, pass);
+			Connection conn = plugin.connectionmanager.getConnection();
 			Statement select = conn.createStatement();
 			ResultSet result = select.executeQuery("SELECT * FROM `" + iptable + "` " +
 				"WHERE `username`='" + name + "'");
@@ -358,7 +344,7 @@ public class Database {
 	
 	private void addPlayerIPRow(Player player, String ip) {
 		try {
-			Connection conn = DriverManager.getConnection(url, user, pass);
+			Connection conn = plugin.connectionmanager.getConnection();
 			Statement update = conn.createStatement();
 			String query = "INSERT INTO `" + iptable + "` " +
 				"(`username`, `ip1`) VALUES('" + player.getName() + "', '" + ip + "')";
@@ -366,7 +352,6 @@ public class Database {
 			update.executeUpdate(query);
 			
 			update.close();
-			conn.close();
 		} catch (SQLException se) {
 			se.printStackTrace();
 		}
@@ -374,7 +359,7 @@ public class Database {
 	
 	public void offsetPlayerIPHistory(Player player) {
 		try {
-			Connection conn = DriverManager.getConnection(url, user, pass);
+			Connection conn = plugin.connectionmanager.getConnection();
 			Statement update = conn.createStatement();
 			String[] iphist = getPlayerIPHistory(player);
 			String[] offset = new String[iphist.length];
@@ -408,7 +393,6 @@ public class Database {
 			}
 			
 			update.close();
-			conn.close();
 		} catch (SQLException se) {
 			se.printStackTrace();
 		}
@@ -418,7 +402,7 @@ public class Database {
 		boolean found = false;
 		
 		try {
-			Connection conn = DriverManager.getConnection(url, user, pass);
+			Connection conn = plugin.connectionmanager.getConnection();
 			Statement select = conn.createStatement();
 			ResultSet result = select.executeQuery(
 				"SELECT * FROM `" + iptable + "` WHERE `username`='" + name + "'");
@@ -434,8 +418,8 @@ public class Database {
 	public void tryRegister(Player player, String password) {
 		BAPlayer ba = plugin.pman.getBAPlayerByName(player.getName());
 		try {
-			// Create connection
-			Connection conn = DriverManager.getConnection(url, user, pass);
+			// Get connection
+			Connection conn = plugin.connectionmanager.getConnection();
 			
 			// Check for pre-existing user by this name
 			Statement select = conn.createStatement();
@@ -522,9 +506,7 @@ public class Database {
 						+ "Thank you for registering with our server!");
 			}
 			// Close result and connection
-			result.close();
-			conn.close();
-			
+			result.close();			
 		} catch (ConcurrentModificationException cmx) {
 			cmx.printStackTrace();
 		} catch (UnsupportedEncodingException uex) {
@@ -536,12 +518,13 @@ public class Database {
 		}
 	}
 	
-	public void tryLoginManual(Player player, String[] input) {
+	public boolean tryLoginManual(Player player, String[] input) {
 		BAPlayer ba = plugin.pman.getBAPlayerByName(player.getName());
+		boolean r = false;
 		try {
 			if (ba.getState() == BAState.LOGGEDOUT) {
-				// Create connection
-				Connection conn = DriverManager.getConnection(url, user, pass);
+				// Get connection
+				Connection conn = plugin.connectionmanager.getConnection();
 				
 				Statement select = conn.createStatement();
 				ResultSet result = select.executeQuery(
@@ -603,11 +586,9 @@ public class Database {
 										// Execute query
 										update.execute();
 										
-										// Clean up
-										update.close();
-										
 										// Add player to the logged in list
 										ba.setState(BAState.LOGGEDIN);
+										r = true;
 									}
 								}
 								else { // Password doesn't match
@@ -633,10 +614,10 @@ public class Database {
 							PreparedStatement statement = conn
 									.prepareStatement(query);
 							statement.executeUpdate();
-							statement.close();
 
 							// Add player to the logged in list
 							ba.setState(BAState.LOGGEDIN);
+							r = true;
 						} else { // Passwords do not match
 							player.sendMessage(ChatColor.YELLOW
 									+ "Password incorrect, try again.");
@@ -660,6 +641,13 @@ public class Database {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		return r;
+	}
+	
+	public ResultSet getPlayerRow(Player player) {
+		ResultSet result = null;
+		
+		return result;
 	}
 	
 	public void tryLogout(CommandSender sender, String name) {
@@ -670,8 +658,8 @@ public class Database {
 		ba.setState(BAState.LOGGEDOUT);
 		
 		try {
-			// Create connection
-			Connection conn = DriverManager.getConnection(url, user, pass);
+			// Get connection
+			Connection conn = plugin.connectionmanager.getConnection();
 			
 			// Query to reset last login time to 1
 			String query = "UPDATE `"
@@ -696,7 +684,6 @@ public class Database {
 			
 			// Clean up
 			update.close();
-			conn.close();
 		} catch (SQLException se) {
 			se.printStackTrace();
 		}
@@ -707,8 +694,8 @@ public class Database {
 		BAPlayer ba = plugin.pman.getBAPlayerByName(player.getName());
 		
 		try {
-			// Create connection
-			Connection conn = DriverManager.getConnection(url, user, pass);
+			// Get connection
+			Connection conn = plugin.connectionmanager.getConnection();
 			
 			String query = "DELETE FROM `" + login + "` WHERE username='" + player.getName() + "'";
 			Statement delete = conn.createStatement();
@@ -729,7 +716,7 @@ public class Database {
 	
 	public boolean tryVerifyPassword(Player player, String input) {
 		try {
-			Connection conn = DriverManager.getConnection(url, user, pass);
+			Connection conn = plugin.connectionmanager.getConnection();
 			Statement select = conn.createStatement();
 			ResultSet result = select.executeQuery(
 					"SELECT * FROM `" + login + "` WHERE username='" + player.getName() + "'");
@@ -746,7 +733,6 @@ public class Database {
 			}
 			
 			result.close();
-			conn.close();
 		} catch (SQLException se) {
 			se.printStackTrace();
 		} catch (UnsupportedEncodingException uee) {
@@ -755,6 +741,27 @@ public class Database {
 			nsae.printStackTrace();
 		}
 		return false;
+	}
+	
+	public boolean checkResetPassword(Player player) {
+		boolean r = false;
+		try {
+			// Get connection
+			Connection conn = plugin.connectionmanager.getConnection();
+			
+			Statement select = conn.createStatement();
+			ResultSet result = select.executeQuery(
+					"SELECT * FROM `" + login + "` WHERE username='" + player.getName() + "'");
+			
+			// If the player isn't found, it can be safely assumed that they're not under password reset
+			if (result.next()) {
+				r = result.getInt(9) == 1 ? true : false;
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return r;
 	}
 	
 	public boolean modifyWhitelist(String[] input) {
@@ -770,7 +777,7 @@ public class Database {
 			String username = input[1];
 			
 			// Create connection and statement
-			Connection conn = DriverManager.getConnection(url, user, pass);
+			Connection conn = plugin.connectionmanager.getConnection();
 			
 			// Check for preexisting entry
 			Statement select = conn.createStatement();
@@ -810,7 +817,6 @@ public class Database {
 			
 			// Clean up
 			result.close();
-			conn.close();
 			
 			// Report back to player
 			return addremove;
@@ -873,7 +879,7 @@ public class Database {
 		
 		try {
 			// Create connection
-			Connection conn = DriverManager.getConnection(url, user, pass);
+			Connection conn = plugin.connectionmanager.getConnection();
 			
 			String query = "UPDATE `" + login + "` SET enableipcheck='"
 					+ ipcheckFlagInt + "' WHERE username='"
@@ -896,7 +902,7 @@ public class Database {
 		String newpasswd = input[1];
 		
 		try {
-			Connection conn = DriverManager.getConnection(url, user, pass);
+			Connection conn = plugin.connectionmanager.getConnection();
 			Statement select = conn.createStatement();
 			ResultSet result = select.executeQuery(
 					"SELECT * FROM `" + login + "` WHERE username='" + player.getName() + "'");
@@ -934,7 +940,6 @@ public class Database {
 			}
 			
 			result.close();
-			conn.close();
 		} catch (SQLException se) {
 			se.printStackTrace();
 		} catch (UnsupportedEncodingException uee) {
@@ -950,7 +955,7 @@ public class Database {
 		
 		try {
 			// Create connection and exect SELECT query
-			Connection conn = DriverManager.getConnection(url, user, pass);
+			Connection conn = plugin.connectionmanager.getConnection();
 			
 			String query = "SELECT * FROM `" + login + "` WHERE `username`='" + username + "'";
 			Statement statement = conn.createStatement();
@@ -995,7 +1000,6 @@ public class Database {
 			
 			result.close();
 			statement.close();
-			conn.close();
 		} catch (SQLException se) {
 			se.printStackTrace();
 		} catch (NoSuchAlgorithmException nsae) {
@@ -1009,7 +1013,7 @@ public class Database {
 		String username = split[0];
 		
 		try {
-			Connection conn = DriverManager.getConnection(url, user, pass);
+			Connection conn = plugin.connectionmanager.getConnection();
 			Statement select = conn.createStatement();
 			ResultSet result = select.executeQuery(
 					"SELECT * FROM `" + login + "` WHERE `username`='" + username + "'");
@@ -1051,7 +1055,6 @@ public class Database {
 			}
 			result.close();
 			select.close();
-			conn.close();
 		} catch (SQLException se) {
 			se.printStackTrace();
 		} catch (NoSuchAlgorithmException nsae) {
@@ -1066,7 +1069,7 @@ public class Database {
 		long regdate = -1;
 		
 		try {
-			Connection conn = DriverManager.getConnection(url, user, pass);
+			Connection conn = plugin.connectionmanager.getConnection();
 			Statement select = conn.createStatement();
 			ResultSet result = select.executeQuery(
 					"SELECT `dateregistered` FROM `" + login + "` WHERE `username`='" + name + "'");
